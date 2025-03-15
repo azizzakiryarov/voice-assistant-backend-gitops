@@ -1,0 +1,20 @@
+apiVersion: agroproj.io/v1alpha1
+kind: Application
+metadata:
+  name: voice-assistant
+  namespace: argocd
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/azizzakiryarov/voice-assistant-backend-gitops
+        targetRevision: HEAD
+        path: charts/voice-assistant
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: voice-assistant
+    syncPolicy:
+      syncOptions:
+        - CreateNamespace=true
+      automated:
+        prune: true
+        selfHeal: true
