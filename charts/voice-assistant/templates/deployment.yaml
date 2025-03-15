@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: voice-assistant
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voice-assistant-deployment
+  namespace: voice-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voice-assistant
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: voice-assistant
+        tier: backend
+    spec:
+      containers:
+        - name: voice-assistant
+          image: azizzakiryarov/voice-assistant:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-password
