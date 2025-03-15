@@ -2,7 +2,7 @@ apiVersion: agroproj.io/v1alpha1
 kind: Application
 metadata:
   name: voice-assistant
-  namespace: argocd
+  namespace: voice-assistant
 spec:
     project: default
     source:
