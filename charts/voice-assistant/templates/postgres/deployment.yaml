@@ -19,10 +19,7 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: postgres-db
+              value: "azizzakiryarov"  # Or set this from a secret/configmap
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
