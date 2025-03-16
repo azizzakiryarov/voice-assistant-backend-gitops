@@ -1,10 +1,10 @@
-# PostgreSQL StorageClass
+# Custom StorageClass for MicroK8s on Raspberry Pi
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: postgres-storage
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
+provisioner: microk8s.io/hostpath
+volumeBindingMode: Immediate
 ---
 # PostgreSQL PersistentVolumeClaim
 apiVersion: v1
