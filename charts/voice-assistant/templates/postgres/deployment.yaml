@@ -19,7 +19,7 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              value: "azizzakiryarov"  # Or set this from a secret/configmap
+              value: "postgres"  # Use the default database for initial setup
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -35,6 +35,8 @@ spec:
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
           resources:
             requests:
               memory: "256Mi"
@@ -64,3 +66,6 @@ spec:
         - name: postgres-storage
           persistentVolumeClaim:
             claimName: postgres-pvc
+        - name: init-script
+          configMap:
+            name: postgres-init-script
