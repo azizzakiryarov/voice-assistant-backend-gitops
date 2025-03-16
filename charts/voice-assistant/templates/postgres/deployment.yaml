@@ -33,6 +33,8 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: postgres-password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
@@ -46,19 +48,19 @@ spec:
           livenessProbe:
             exec:
               command:
-                - pg_isready
-                - -U
-                - postgresuser
-            initialDelaySeconds: 30
+                - sh
+                - -c
+                - PGPASSWORD=$POSTGRES_PASSWORD pg_isready -U $POSTGRES_USER
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             exec:
               command:
-                - pg_isready
-                - -U
-                - postgresuser
-            initialDelaySeconds: 5
+                - sh
+                - -c
+                - PGPASSWORD=$POSTGRES_PASSWORD pg_isready -U $POSTGRES_USER
+            initialDelaySeconds: 20
             periodSeconds: 5
             timeoutSeconds: 2
       volumes:
