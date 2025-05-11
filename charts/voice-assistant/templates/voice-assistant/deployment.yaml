@@ -6,7 +6,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: voice-assistant-deployment
+  name: voice-assistant-deployment-backend
   namespace: voice-assistant
 spec:
   replicas: 1

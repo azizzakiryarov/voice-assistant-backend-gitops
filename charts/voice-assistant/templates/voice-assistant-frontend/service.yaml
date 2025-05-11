@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: voice-assistant
+  name: voice-assistant-service-frontend
 spec:
   selector:
     app: voice-assistant
