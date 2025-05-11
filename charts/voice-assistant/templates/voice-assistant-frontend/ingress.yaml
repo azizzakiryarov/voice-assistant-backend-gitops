@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: voice-assistant-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - host: voice-assistant.local
+      http:
+        paths:
+          - path: /api/voice-assistent(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: voice-assistant-service
+                port:
+                  number: 5173

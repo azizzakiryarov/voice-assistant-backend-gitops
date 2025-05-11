@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voice-assistant-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voice-assistant
+  template:
+    metadata:
+      labels:
+        app: voice-assistant
+    spec:
+      containers:
+        - name: voice-assistant
+          image: azizzakiryarov/voice-assistant-frontend:latest
+          ports:
+            - containerPort: 5173
