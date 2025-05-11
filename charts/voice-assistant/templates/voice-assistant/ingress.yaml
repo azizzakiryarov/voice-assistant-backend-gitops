@@ -3,16 +3,16 @@ kind: Ingress
 metadata:
   name: voice-assistant-ingress-backend
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: public
   rules:
     - http:
         paths:
-          - path: /
+          - path: /api/voice-assistent(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: voice-assistant
+                name: voice-assistant-service-backend
                 port:
                   number: 8081
