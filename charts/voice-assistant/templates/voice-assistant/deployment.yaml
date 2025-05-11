@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: voice-assistant
-          image: azizzakiryarov/voice-assistant:latest
+          image: azizzakiryarov/voice-assistant-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
