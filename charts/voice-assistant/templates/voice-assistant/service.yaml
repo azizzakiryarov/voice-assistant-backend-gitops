@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: voice-assistant
 spec:
-  type: ClusterIP
   selector:
     app: voice-assistant
   ports:
     - protocol: TCP
       port: 8081
       targetPort: 8081
+  type: ClusterIP
