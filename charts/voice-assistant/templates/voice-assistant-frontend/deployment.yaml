@@ -16,4 +16,4 @@ spec:
         - name: voice-assistant
           image: azizzakiryarov/voice-assistant-frontend:latest
           ports:
-            - containerPort: 5173
+            - containerPort: 80
