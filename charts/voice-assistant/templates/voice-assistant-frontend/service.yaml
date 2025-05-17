@@ -4,6 +4,7 @@ metadata:
   name: voice-assistant-service-frontend
   annotations:
     metallb.universe.tf/loadBalancerIP: 192.168.50.79
+    metallb.universe.tf/allow-shared-ip: "shared-ip-key"  # This key enables IP sharing
 spec:
   selector:
     app: voice-assistant
