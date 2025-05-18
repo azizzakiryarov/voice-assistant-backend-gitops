@@ -43,6 +43,11 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: postgres-password
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-api-secret
+                  key: ai-openai-api-key
             - name: GOOGLE_CALENDAR_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -53,8 +58,10 @@ spec:
                 secretKeyRef:
                   name: google-calender-secret
                   key: client-secret
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: openai-api-secret
-                  key: ai-openai-api-key
+          volumeMounts:
+            - name: token-volume
+              mountPath: /app/tokens
+      volumes:
+        - name: token-volume
+          persistentVolumeClaim:
+            claimName: tokens-pvc
