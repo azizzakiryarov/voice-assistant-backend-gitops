@@ -20,7 +20,7 @@ spec:
                 port:
                   number: 80
           - path: /api(/|$)(.*)
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: voice-assistant-service-backend
