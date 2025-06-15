@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Ändra till "true" om du aktiverar HTTPS senare
 spec:
-  ingressClassName: nginx  # <-- Viktigt!
+  ingressClassName: nginx
   rules:
     - host: raspberrypi.local
       http:
@@ -19,3 +19,10 @@ spec:
                 name: voice-assistant-service-frontend
                 port:
                   number: 80
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: voice-assistant-service-backend
+                port:
+                  number: 8081
