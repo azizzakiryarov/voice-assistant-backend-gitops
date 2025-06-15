@@ -4,8 +4,7 @@ metadata:
   name: voice-assistant-ingress
   namespace: voice-assistant
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Ändra till "true" om du aktiverar HTTPS senare
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
@@ -20,7 +19,7 @@ spec:
                 port:
                   number: 80
           - path: /api(/|$)(.*)
-            pathType: ImplementationSpecific
+            pathType: Prefix
             backend:
               service:
                 name: voice-assistant-service-backend
