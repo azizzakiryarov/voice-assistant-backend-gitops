@@ -8,13 +8,16 @@ spec:
   selector:
     matchLabels:
       app: voice-assistant
+      tier: frontend
   template:
     metadata:
       labels:
         app: voice-assistant
+        tier: frontend
     spec:
       containers:
         - name: voice-assistant
           image: azizzakiryarov/voice-assistant-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
