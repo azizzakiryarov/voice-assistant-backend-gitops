@@ -5,6 +5,7 @@ metadata:
 spec:
   selector:
     app: voice-assistant
+    tier: backend
   ports:
     - protocol: TCP
       port: 8081
