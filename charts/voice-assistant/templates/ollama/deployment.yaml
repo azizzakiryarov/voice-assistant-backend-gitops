@@ -25,10 +25,11 @@ spec:
             limits:
               memory: "4Gi"
               cpu: "2000m"
-            volumeMounts:
-              - name: ollama-data
-                mountPath: /root/.ollama
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
       volumes:
         - name: ollama-data
           hostPath:
             path: /home/azizzakiryarov/ollama-models
+            type: DirectoryOrCreate
