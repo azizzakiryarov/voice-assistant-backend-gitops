@@ -1,0 +1,4 @@
+ingress:
+  hosts:
+    - raspberrypi.local
+    - voice-assistant.duckdns.org

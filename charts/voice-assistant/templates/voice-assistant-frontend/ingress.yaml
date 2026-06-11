@@ -18,7 +18,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: raspberrypi.local
+{{- range .Values.ingress.hosts }}
+    - host: {{ . | quote }}
       http:
         paths:
           - path: /api
@@ -36,3 +37,4 @@ spec:
                 name: voice-assistant-service-frontend
                 port:
                   number: 80
+{{- end }}
