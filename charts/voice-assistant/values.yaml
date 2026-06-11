@@ -1,6 +1,7 @@
 ingress:
-  hosts:
+  localHosts:
     - raspberrypi.local
+  hosts:
     - voice-assistant.duckdns.org
   tls:
     enabled: true

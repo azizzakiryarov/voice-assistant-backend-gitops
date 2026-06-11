@@ -1,31 +1,19 @@
+{{- if .Values.ingress.localHosts }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: voice-assistant-ingress
+  name: voice-assistant-local-ingress
   namespace: voice-assistant
   annotations:
-    cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuer.name | quote }}
-    # Timeout-inställningar för längre API-anrop
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-    
-    # Client max body size för filuppladdningar
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
-{{- if .Values.ingress.tls.enabled }}
-  tls:
-    - secretName: {{ .Values.ingress.tls.secretName | quote }}
-      hosts:
-{{- range .Values.ingress.tls.hosts }}
-        - {{ . | quote }}
-{{- end }}
-{{- end }}
   rules:
-{{- range .Values.ingress.hosts }}
+{{- range .Values.ingress.localHosts }}
     - host: {{ . | quote }}
       http:
         paths:
@@ -36,7 +24,6 @@ spec:
                 name: voice-assistant-service-backend
                 port:
                   number: 8081
-
           - path: /
             pathType: Prefix
             backend:
@@ -44,4 +31,5 @@ spec:
                 name: voice-assistant-service-frontend
                 port:
                   number: 80
+{{- end }}
 {{- end }}
