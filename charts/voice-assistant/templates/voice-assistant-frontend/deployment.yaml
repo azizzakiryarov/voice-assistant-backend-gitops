@@ -19,5 +19,12 @@ spec:
         - name: voice-assistant
           image: azizzakiryarov/voice-assistant-frontend:latest
           imagePullPolicy: Always
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sed -i 's|T.post("/text",n)|T.post("/todos",n)|g' /usr/share/nginx/html/js/*.js
           ports:
             - containerPort: 80
