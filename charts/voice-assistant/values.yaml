@@ -2,3 +2,14 @@ ingress:
   hosts:
     - raspberrypi.local
     - voice-assistant.duckdns.org
+  tls:
+    enabled: true
+    secretName: voice-assistant-duckdns-tls
+    hosts:
+      - voice-assistant.duckdns.org
+
+certManager:
+  clusterIssuer:
+    enabled: true
+    name: letsencrypt-prod
+    email: zakiryarov@hotmail.com

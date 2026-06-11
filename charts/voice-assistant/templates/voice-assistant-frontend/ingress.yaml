@@ -4,6 +4,7 @@ metadata:
   name: voice-assistant-ingress
   namespace: voice-assistant
   annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuer.name | quote }}
     # Timeout-inställningar för längre API-anrop
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
@@ -11,12 +12,18 @@ metadata:
     
     # Client max body size för filuppladdningar
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    
-    # SSL redirect (om du senare vill lägga till HTTPS)
-    # nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 
 spec:
   ingressClassName: nginx
+{{- if .Values.ingress.tls.enabled }}
+  tls:
+    - secretName: {{ .Values.ingress.tls.secretName | quote }}
+      hosts:
+{{- range .Values.ingress.tls.hosts }}
+        - {{ . | quote }}
+{{- end }}
+{{- end }}
   rules:
 {{- range .Values.ingress.hosts }}
     - host: {{ . | quote }}
