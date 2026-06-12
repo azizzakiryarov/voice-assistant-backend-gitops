@@ -24,6 +24,27 @@ spec:
                 name: voice-assistant-service-backend
                 port:
                   number: 8081
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: voice-assistant-service-backend
+                port:
+                  number: 8081
+          - path: /login/oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: voice-assistant-service-backend
+                port:
+                  number: 8081
+          - path: /logout
+            pathType: Prefix
+            backend:
+              service:
+                name: voice-assistant-service-backend
+                port:
+                  number: 8081
           - path: /
             pathType: Prefix
             backend:

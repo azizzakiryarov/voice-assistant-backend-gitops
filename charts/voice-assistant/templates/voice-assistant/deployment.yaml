@@ -60,6 +60,8 @@ spec:
                   key: client-secret
             - name: WHISPER_BASE_URL
               value: http://whisper:9000
+            - name: APP_FRONTEND_URL
+              value: {{ .Values.app.frontendUrl | quote }}
           volumeMounts:
             - name: token-volume
               mountPath: /app/tokens

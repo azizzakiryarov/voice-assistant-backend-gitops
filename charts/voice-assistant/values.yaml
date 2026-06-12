@@ -14,3 +14,6 @@ certManager:
     enabled: true
     name: letsencrypt-prod
     email: zakiryarov@hotmail.com
+
+app:
+  frontendUrl: https://voice-assistant.duckdns.org/
