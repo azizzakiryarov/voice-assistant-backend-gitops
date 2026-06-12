@@ -20,7 +20,9 @@ spec:
             - containerPort: 9000
           env:
             - name: WHISPER_MODEL
-              value: "base"
+              value: "small"
+            - name: WHISPER_HOTWORDS
+              value: "Boka ett möte med Peter Andersson den trettonde juni den 13 juni klockan tio noll noll kl 10 00"
           resources:
             requests:
               memory: "512Mi"
