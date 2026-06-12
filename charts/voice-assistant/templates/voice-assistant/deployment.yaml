@@ -58,6 +58,8 @@ spec:
                 secretKeyRef:
                   name: google-calender-secret
                   key: client-secret
+            - name: WHISPER_BASE_URL
+              value: http://whisper:9000
           volumeMounts:
             - name: token-volume
               mountPath: /app/tokens

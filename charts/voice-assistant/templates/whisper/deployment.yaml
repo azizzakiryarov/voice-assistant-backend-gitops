@@ -20,7 +20,7 @@ spec:
             - containerPort: 9000
           env:
             - name: WHISPER_MODEL
-              value: "tiny"
+              value: "base"
           resources:
             requests:
               memory: "512Mi"
