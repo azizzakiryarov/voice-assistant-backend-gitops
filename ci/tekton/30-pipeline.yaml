@@ -1,0 +1,215 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: voice-assistant-frontend-ci
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: repo-url
+      type: string
+    - name: revision
+      type: string
+      default: main
+    - name: image
+      type: string
+      default: docker.io/azizzakiryarov/voice-assistant-frontend
+    - name: trivy-severity
+      type: string
+      default: HIGH,CRITICAL
+  workspaces:
+    - name: source
+    - name: cache
+  tasks:
+    - name: clone
+      taskRef:
+        name: git-clone-repo
+      params:
+        - name: repo-url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+      workspaces:
+        - name: source
+          workspace: source
+    - name: quality
+      runAfter:
+        - clone
+      taskRef:
+        name: frontend-quality
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: source-scan
+      runAfter:
+        - clone
+      taskRef:
+        name: trivy-source-scan
+      params:
+        - name: severity
+          value: $(params.trivy-severity)
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: build-image-archive
+      runAfter:
+        - quality
+        - source-scan
+      taskRef:
+        name: buildah-build-archive
+      params:
+        - name: component
+          value: frontend
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: image-scan
+      runAfter:
+        - build-image-archive
+      taskRef:
+        name: trivy-image-scan
+      params:
+        - name: component
+          value: frontend
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
+        - name: severity
+          value: $(params.trivy-severity)
+      workspaces:
+        - name: cache
+          workspace: cache
+    - name: push-image
+      runAfter:
+        - image-scan
+      taskRef:
+        name: push-image-after-gates
+      params:
+        - name: component
+          value: frontend
+        - name: image
+          value: $(params.image)
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
+      workspaces:
+        - name: cache
+          workspace: cache
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: voice-assistant-backend-ci
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: repo-url
+      type: string
+    - name: revision
+      type: string
+      default: main
+    - name: image
+      type: string
+      default: docker.io/azizzakiryarov/voice-assistant-backend
+    - name: trivy-severity
+      type: string
+      default: HIGH,CRITICAL
+  workspaces:
+    - name: source
+    - name: cache
+  tasks:
+    - name: clone
+      taskRef:
+        name: git-clone-repo
+      params:
+        - name: repo-url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+      workspaces:
+        - name: source
+          workspace: source
+    - name: unit-tests
+      runAfter:
+        - clone
+      taskRef:
+        name: backend-unit-tests
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: integration-tests
+      runAfter:
+        - unit-tests
+      taskRef:
+        name: backend-integration-tests
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: source-scan
+      runAfter:
+        - clone
+      taskRef:
+        name: trivy-source-scan
+      params:
+        - name: severity
+          value: $(params.trivy-severity)
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: build-image-archive
+      runAfter:
+        - integration-tests
+        - source-scan
+      taskRef:
+        name: buildah-build-archive
+      params:
+        - name: component
+          value: backend
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+          workspace: cache
+    - name: image-scan
+      runAfter:
+        - build-image-archive
+      taskRef:
+        name: trivy-image-scan
+      params:
+        - name: component
+          value: backend
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
+        - name: severity
+          value: $(params.trivy-severity)
+      workspaces:
+        - name: cache
+          workspace: cache
+    - name: push-image
+      runAfter:
+        - image-scan
+      taskRef:
+        name: push-image-after-gates
+      params:
+        - name: component
+          value: backend
+        - name: image
+          value: $(params.image)
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
+      workspaces:
+        - name: cache
+          workspace: cache

@@ -1,0 +1,136 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: github-push-binding
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: repo-url
+      value: $(body.repository.clone_url)
+    - name: revision
+      value: $(extensions.revision)
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: frontend-push-template
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: repo-url
+    - name: revision
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: voice-assistant-frontend-ci-
+        namespace: voice-assistant-ci
+      spec:
+        serviceAccountName: voice-assistant-ci
+        pipelineRef:
+          name: voice-assistant-frontend-ci
+        params:
+          - name: repo-url
+            value: $(tt.params.repo-url)
+          - name: revision
+            value: $(tt.params.revision)
+          - name: image
+            value: docker.io/azizzakiryarov/voice-assistant-frontend
+        workspaces:
+          - name: source
+            persistentVolumeClaim:
+              claimName: voice-assistant-ci-source
+          - name: cache
+            persistentVolumeClaim:
+              claimName: voice-assistant-ci-cache
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: backend-push-template
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: repo-url
+    - name: revision
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: voice-assistant-backend-ci-
+        namespace: voice-assistant-ci
+      spec:
+        serviceAccountName: voice-assistant-ci
+        pipelineRef:
+          name: voice-assistant-backend-ci
+        params:
+          - name: repo-url
+            value: $(tt.params.repo-url)
+          - name: revision
+            value: $(tt.params.revision)
+          - name: image
+            value: docker.io/azizzakiryarov/voice-assistant-backend
+        workspaces:
+          - name: source
+            persistentVolumeClaim:
+              claimName: voice-assistant-ci-source
+          - name: cache
+            persistentVolumeClaim:
+              claimName: voice-assistant-ci-cache
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: voice-assistant-github
+  namespace: voice-assistant-ci
+spec:
+  serviceAccountName: voice-assistant-ci
+  triggers:
+    - name: frontend-main-push
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: secretRef
+              value:
+                secretName: github-webhook-secret
+                secretKey: secretToken
+            - name: eventTypes
+              value: ["push"]
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: "body.ref == 'refs/heads/main' && body.repository.full_name == 'azizzakiryarov/voice-assistent-frontend'"
+            - name: overlays
+              value:
+                - key: revision
+                  expression: "body.ref.split('/')[2]"
+      bindings:
+        - ref: github-push-binding
+      template:
+        ref: frontend-push-template
+    - name: backend-main-push
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: secretRef
+              value:
+                secretName: github-webhook-secret
+                secretKey: secretToken
+            - name: eventTypes
+              value: ["push"]
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: "body.ref == 'refs/heads/main' && body.repository.full_name == 'azizzakiryarov/voice-assistant-backend'"
+            - name: overlays
+              value:
+                - key: revision
+                  expression: "body.ref.split('/')[2]"
+      bindings:
+        - ref: github-push-binding
+      template:
+        ref: backend-push-template

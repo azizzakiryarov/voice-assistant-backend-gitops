@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: voice-assistant-frontend-ci-manual-
+  namespace: voice-assistant-ci
+spec:
+  serviceAccountName: voice-assistant-ci
+  pipelineRef:
+    name: voice-assistant-frontend-ci
+  params:
+    - name: repo-url
+      value: https://github.com/azizzakiryarov/voice-assistent-frontend.git
+    - name: revision
+      value: main
+    - name: image
+      value: docker.io/azizzakiryarov/voice-assistant-frontend
+  workspaces:
+    - name: source
+      persistentVolumeClaim:
+        claimName: voice-assistant-ci-source
+    - name: cache
+      persistentVolumeClaim:
+        claimName: voice-assistant-ci-cache

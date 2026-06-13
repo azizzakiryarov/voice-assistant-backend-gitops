@@ -1,0 +1,246 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone-repo
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: repo-url
+      type: string
+    - name: revision
+      type: string
+      default: main
+  results:
+    - name: commit
+      description: Checked out commit SHA.
+  workspaces:
+    - name: source
+  steps:
+    - name: clone
+      image: alpine/git:2.45.2
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -eu
+        rm -rf repo
+        git clone --depth 1 --branch "$(params.revision)" "$(params.repo-url)" repo
+        cd repo
+        git rev-parse --short=12 HEAD | tee "$(results.commit.path)"
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: frontend-quality
+  namespace: voice-assistant-ci
+spec:
+  workspaces:
+    - name: source
+    - name: cache
+  steps:
+    - name: lint-test-build
+      image: node:22-alpine
+      workingDir: $(workspaces.source.path)/repo
+      env:
+        - name: npm_config_cache
+          value: $(workspaces.cache.path)/npm
+      script: |
+        #!/bin/sh
+        set -eu
+        npm ci
+        npm run lint
+        if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+          npm test
+        else
+          echo "No frontend test script found; lint and production build remain mandatory."
+        fi
+        npm run build
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: backend-unit-tests
+  namespace: voice-assistant-ci
+spec:
+  workspaces:
+    - name: source
+    - name: cache
+  steps:
+    - name: maven-test
+      image: maven:3.9.9-eclipse-temurin-21-alpine
+      workingDir: $(workspaces.source.path)/repo
+      env:
+        - name: MAVEN_OPTS
+          value: "-Dmaven.repo.local=$(workspaces.cache.path)/m2"
+      script: |
+        #!/bin/sh
+        set -eu
+        ./mvnw -B -ntp test
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: backend-integration-tests
+  namespace: voice-assistant-ci
+spec:
+  workspaces:
+    - name: source
+    - name: cache
+  sidecars:
+    - name: postgres
+      image: postgres:16-alpine
+      env:
+        - name: POSTGRES_DB
+          value: voiceassistant
+        - name: POSTGRES_USER
+          value: ci
+        - name: POSTGRES_PASSWORD
+          value: ci
+      ports:
+        - containerPort: 5432
+      readinessProbe:
+        exec:
+          command: ["pg_isready", "-U", "ci", "-d", "voiceassistant"]
+        initialDelaySeconds: 5
+        periodSeconds: 5
+  steps:
+    - name: maven-verify
+      image: maven:3.9.9-eclipse-temurin-21-alpine
+      workingDir: $(workspaces.source.path)/repo
+      env:
+        - name: MAVEN_OPTS
+          value: "-Dmaven.repo.local=$(workspaces.cache.path)/m2"
+        - name: POSTGRES_USER
+          value: ci
+        - name: POSTGRES_PASSWORD
+          value: ci
+        - name: GOOGLE_CALENDAR_CLIENT_ID
+          value: ci-client-id
+        - name: GOOGLE_CALENDAR_CLIENT_SECRET
+          value: ci-client-secret
+      script: |
+        #!/bin/sh
+        set -eu
+        export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/voiceassistant
+        export SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"
+        export SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"
+        ./mvnw -B -ntp verify
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: trivy-source-scan
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: severity
+      type: string
+      default: HIGH,CRITICAL
+  workspaces:
+    - name: source
+    - name: cache
+  steps:
+    - name: trivy-fs
+      image: aquasec/trivy:0.53.0
+      workingDir: $(workspaces.source.path)/repo
+      env:
+        - name: TRIVY_CACHE_DIR
+          value: $(workspaces.cache.path)/trivy
+      script: |
+        #!/bin/sh
+        set -eu
+        trivy fs --exit-code 1 --ignore-unfixed --severity "$(params.severity)" .
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: buildah-build-archive
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: component
+      type: string
+    - name: image-tag
+      type: string
+  workspaces:
+    - name: source
+    - name: cache
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:v1.37.1
+      workingDir: $(workspaces.source.path)/repo
+      securityContext:
+        privileged: true
+      env:
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: BUILDAH_ISOLATION
+          value: chroot
+      script: |
+        #!/bin/sh
+        set -eu
+        mkdir -p "$(workspaces.cache.path)/images"
+        buildah bud --layers --tag "localhost/$(params.component):$(params.image-tag)" .
+        buildah push "localhost/$(params.component):$(params.image-tag)" \
+          "oci-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar:$(params.component):$(params.image-tag)"
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: trivy-image-scan
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: component
+      type: string
+    - name: image-tag
+      type: string
+    - name: severity
+      type: string
+      default: HIGH,CRITICAL
+  workspaces:
+    - name: cache
+  steps:
+    - name: trivy-image
+      image: aquasec/trivy:0.53.0
+      env:
+        - name: TRIVY_CACHE_DIR
+          value: $(workspaces.cache.path)/trivy
+      script: |
+        #!/bin/sh
+        set -eu
+        trivy image --input "$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar" \
+          --exit-code 1 --ignore-unfixed --severity "$(params.severity)"
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: push-image-after-gates
+  namespace: voice-assistant-ci
+spec:
+  params:
+    - name: component
+      type: string
+    - name: image
+      type: string
+    - name: image-tag
+      type: string
+  workspaces:
+    - name: cache
+  steps:
+    - name: push
+      image: quay.io/buildah/stable:v1.37.1
+      securityContext:
+        privileged: true
+      env:
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: BUILDAH_ISOLATION
+          value: chroot
+      script: |
+        #!/bin/sh
+        set -eu
+        buildah pull "oci-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar"
+        buildah tag "$(params.component):$(params.image-tag)" "$(params.image):$(params.image-tag)"
+        buildah tag "$(params.component):$(params.image-tag)" "$(params.image):latest"
+        buildah push "$(params.image):$(params.image-tag)"
+        buildah push "$(params.image):latest"

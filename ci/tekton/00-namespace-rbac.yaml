@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: voice-assistant-ci
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: voice-assistant-ci
+  namespace: voice-assistant-ci
+secrets:
+  - name: dockerhub-credentials
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: voice-assistant-ci
+  namespace: voice-assistant-ci
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "secrets", "configmaps", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["tekton.dev"]
+    resources: ["pipelineruns", "taskruns"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: voice-assistant-ci
+  namespace: voice-assistant-ci
+subjects:
+  - kind: ServiceAccount
+    name: voice-assistant-ci
+    namespace: voice-assistant-ci
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: voice-assistant-ci
