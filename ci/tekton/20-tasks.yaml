@@ -226,21 +226,34 @@ spec:
       type: string
   workspaces:
     - name: cache
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: dockerhub-credentials
+        items:
+          - key: .dockerconfigjson
+            path: config.json
   steps:
     - name: push
       image: quay.io/buildah/stable:v1.37.1
       securityContext:
         privileged: true
+      volumeMounts:
+        - name: docker-config
+          mountPath: /tekton/home/.docker
+          readOnly: true
       env:
         - name: STORAGE_DRIVER
           value: vfs
         - name: BUILDAH_ISOLATION
           value: chroot
+        - name: REGISTRY_AUTH_FILE
+          value: /tekton/home/.docker/config.json
       script: |
         #!/bin/sh
         set -eu
         buildah pull "oci-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar"
         buildah tag "$(params.component):$(params.image-tag)" "$(params.image):$(params.image-tag)"
         buildah tag "$(params.component):$(params.image-tag)" "$(params.image):latest"
-        buildah push "$(params.image):$(params.image-tag)"
-        buildah push "$(params.image):latest"
+        buildah push --authfile "$REGISTRY_AUTH_FILE" "$(params.image):$(params.image-tag)"
+        buildah push --authfile "$REGISTRY_AUTH_FILE" "$(params.image):latest"

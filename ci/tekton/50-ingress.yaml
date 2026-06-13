@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: voice-assistant-tekton-webhook
+  namespace: voice-assistant-ci
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - secretName: voice-assistant-tekton-webhook-tls
+      hosts:
+        - voice-assistant.duckdns.org
+  rules:
+    - host: voice-assistant.duckdns.org
+      http:
+        paths:
+          - path: /tekton-github
+            pathType: Prefix
+            backend:
+              service:
+                name: el-voice-assistant-github
+                port:
+                  number: 8080

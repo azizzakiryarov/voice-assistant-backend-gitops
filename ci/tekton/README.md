@@ -79,6 +79,13 @@ microk8s kubectl apply -f ci/tekton/10-workspaces.yaml
 microk8s kubectl apply -f ci/tekton/20-tasks.yaml
 microk8s kubectl apply -f ci/tekton/30-pipeline.yaml
 microk8s kubectl apply -f ci/tekton/40-triggers.yaml
+microk8s kubectl apply -f ci/tekton/50-ingress.yaml
+```
+
+GitHub webhook URL:
+
+```text
+https://voice-assistant.duckdns.org/tekton-github
 ```
 
 ## Manual test runs
