@@ -68,13 +68,10 @@ spec:
     - name: maven-test
       image: maven:3.9.9-eclipse-temurin-21-alpine
       workingDir: $(workspaces.source.path)/repo
-      env:
-        - name: MAVEN_OPTS
-          value: "-Dmaven.repo.local=$(workspaces.cache.path)/m2"
       script: |
         #!/bin/sh
         set -eu
-        ./mvnw -B -ntp test
+        ./mvnw -B -ntp -Dmaven.repo.local=$(workspaces.cache.path)/m2 test
 ---
 apiVersion: tekton.dev/v1
 kind: Task
@@ -107,8 +104,6 @@ spec:
       image: maven:3.9.9-eclipse-temurin-21-alpine
       workingDir: $(workspaces.source.path)/repo
       env:
-        - name: MAVEN_OPTS
-          value: "-Dmaven.repo.local=$(workspaces.cache.path)/m2"
         - name: POSTGRES_USER
           value: ci
         - name: POSTGRES_PASSWORD
@@ -123,7 +118,7 @@ spec:
         export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/voiceassistant
         export SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"
         export SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"
-        ./mvnw -B -ntp verify
+        ./mvnw -B -ntp -Dmaven.repo.local=$(workspaces.cache.path)/m2 verify
 ---
 apiVersion: tekton.dev/v1
 kind: Task
