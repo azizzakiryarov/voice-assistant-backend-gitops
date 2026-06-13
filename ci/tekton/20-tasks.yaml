@@ -181,7 +181,7 @@ spec:
         mkdir -p "$(workspaces.cache.path)/images"
         buildah bud --layers --tag "localhost/$(params.component):$(params.image-tag)" .
         buildah push "localhost/$(params.component):$(params.image-tag)" \
-          "oci-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar:$(params.component):$(params.image-tag)"
+          "docker-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar:$(params.component):$(params.image-tag)"
 ---
 apiVersion: tekton.dev/v1
 kind: Task
@@ -252,7 +252,7 @@ spec:
       script: |
         #!/bin/sh
         set -eu
-        buildah pull "oci-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar"
+        buildah pull "docker-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar"
         buildah tag "$(params.component):$(params.image-tag)" "$(params.image):$(params.image-tag)"
         buildah tag "$(params.component):$(params.image-tag)" "$(params.image):latest"
         buildah push --authfile "$REGISTRY_AUTH_FILE" "$(params.image):$(params.image-tag)"
