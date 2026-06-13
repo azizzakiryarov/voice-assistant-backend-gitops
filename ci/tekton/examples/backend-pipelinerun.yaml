@@ -18,7 +18,7 @@ spec:
   workspaces:
     - name: source
       persistentVolumeClaim:
-        claimName: voice-assistant-ci-source
+        claimName: voice-assistant-ci-cache
     - name: cache
       persistentVolumeClaim:
         claimName: voice-assistant-ci-cache
