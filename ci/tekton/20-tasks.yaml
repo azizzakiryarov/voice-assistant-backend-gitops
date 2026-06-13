@@ -25,7 +25,7 @@ spec:
         rm -rf repo
         git clone --depth 1 --branch "$(params.revision)" "$(params.repo-url)" repo
         cd repo
-        git rev-parse --short=12 HEAD | tee "$(results.commit.path)"
+        git rev-parse --short=12 HEAD | tr -d '\n' | tee "$(results.commit.path)"
 ---
 apiVersion: tekton.dev/v1
 kind: Task
