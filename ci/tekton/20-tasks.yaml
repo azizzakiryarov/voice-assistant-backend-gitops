@@ -71,7 +71,7 @@ spec:
       script: |
         #!/bin/sh
         set -eu
-        ./mvnw -B -ntp -Dmaven.repo.local=$(workspaces.cache.path)/m2 test
+        mvn -B -ntp -Dmaven.repo.local="$(workspaces.cache.path)/m2" test
 ---
 apiVersion: tekton.dev/v1
 kind: Task
@@ -118,7 +118,7 @@ spec:
         export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/voiceassistant
         export SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"
         export SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"
-        ./mvnw -B -ntp -Dmaven.repo.local=$(workspaces.cache.path)/m2 verify
+        mvn -B -ntp -Dmaven.repo.local="$(workspaces.cache.path)/m2" verify
 ---
 apiVersion: tekton.dev/v1
 kind: Task
