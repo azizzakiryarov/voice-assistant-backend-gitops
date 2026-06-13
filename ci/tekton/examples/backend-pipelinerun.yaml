@@ -4,7 +4,8 @@ metadata:
   generateName: voice-assistant-backend-ci-manual-
   namespace: voice-assistant-ci
 spec:
-  serviceAccountName: voice-assistant-ci
+  taskRunTemplate:
+    serviceAccountName: voice-assistant-ci
   pipelineRef:
     name: voice-assistant-backend-ci
   params:

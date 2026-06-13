@@ -26,7 +26,8 @@ spec:
         generateName: voice-assistant-frontend-ci-
         namespace: voice-assistant-ci
       spec:
-        serviceAccountName: voice-assistant-ci
+        taskRunTemplate:
+          serviceAccountName: voice-assistant-ci
         pipelineRef:
           name: voice-assistant-frontend-ci
         params:
@@ -60,7 +61,8 @@ spec:
         generateName: voice-assistant-backend-ci-
         namespace: voice-assistant-ci
       spec:
-        serviceAccountName: voice-assistant-ci
+        taskRunTemplate:
+          serviceAccountName: voice-assistant-ci
         pipelineRef:
           name: voice-assistant-backend-ci
         params:
