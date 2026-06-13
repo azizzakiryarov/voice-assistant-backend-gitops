@@ -179,6 +179,7 @@ spec:
         #!/bin/sh
         set -eu
         mkdir -p "$(workspaces.cache.path)/images"
+        rm -f "$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar"
         buildah bud --layers --tag "localhost/$(params.component):$(params.image-tag)" .
         buildah push "localhost/$(params.component):$(params.image-tag)" \
           "docker-archive:$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar:$(params.component):$(params.image-tag)"
