@@ -18,13 +18,18 @@ spec:
           image: ollama/ollama:latest
           ports:
             - containerPort: 11434
+          env:
+            - name: OLLAMA_KEEP_ALIVE
+              value: "30m"
+            - name: OLLAMA_NUM_PARALLEL
+              value: "1"
           resources:
             requests:
-              memory: "1Gi"
-              cpu: "500m"
+              memory: "2Gi"
+              cpu: "1000m"
             limits:
               memory: "4Gi"
-              cpu: "2000m"
+              cpu: "3500m"
           volumeMounts:
             - name: ollama-data
               mountPath: /root/.ollama
