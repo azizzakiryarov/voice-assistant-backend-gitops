@@ -5,9 +5,9 @@ metadata:
   name: voice-assistant-local-ingress
   namespace: voice-assistant
   annotations:
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "900"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "900"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "900"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "1200"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1200"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1200"
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:

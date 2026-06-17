@@ -69,7 +69,7 @@ spec:
             - name: OLLAMA_NUM_THREAD
               value: "4"
             - name: OLLAMA_NUM_PREDICT
-              value: "1200"
+              value: "2600"
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness

@@ -6,9 +6,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuer.name | quote }}
     # Timeout-inställningar för längre API-anrop
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "900"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "900"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "900"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "1200"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1200"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1200"
     
     # Client max body size för filuppladdningar
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
