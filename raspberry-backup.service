@@ -1,0 +1,16 @@
+[Unit]
+Description=Encrypted Raspberry Pi Restic backup
+Documentation=file:/usr/local/share/doc/raspberry-backup/RESTORE.md
+Wants=network-online.target snap.microk8s.daemon-kubelite.service
+After=network-online.target snap.microk8s.daemon-kubelite.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+ExecStart=/usr/local/sbin/backup.sh backup
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+TimeoutStartSec=6h

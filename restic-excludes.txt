@@ -1,0 +1,41 @@
+# Kernel, runtime, and temporary filesystems.
+/proc/**
+/sys/**
+/dev/**
+/run/**
+/tmp/**
+/var/tmp/**
+
+# Regenerable caches and logs.
+/var/cache/**
+/var/log/**
+/home/*/.cache/**
+/home/*/.local/share/Trash/**
+/home/*/Downloads/**
+/home/*/.npm/**
+/home/*/.m2/repository/**
+/home/*/.gradle/caches/**
+
+# Container image layers, runtime state, and build caches.
+/var/lib/docker/**
+/var/lib/containerd/**
+/var/lib/containers/cache/**
+/var/snap/microk8s/common/run/**
+/var/snap/microk8s/common/var/log/**
+/var/snap/microk8s/common/var/lib/containerd/**
+/var/snap/microk8s/common/var/lib/kubelet/plugins_registry/**
+/var/snap/microk8s/common/var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/**
+
+# Regenerable Tekton and build cache PVC content discovered on the live Pi.
+/var/snap/microk8s/common/default-storage/*cache*/images/**
+/var/snap/microk8s/common/default-storage/*cache*/npm/**
+/var/snap/microk8s/common/default-storage/*cache*/m2/**
+/var/snap/microk8s/common/default-storage/*cache*/trivy/**
+
+# Local filesystem noise.
+*.log
+*.tmp
+*.swp
+*.swo
+.DS_Store
+lost+found/**

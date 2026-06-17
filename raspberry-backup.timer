@@ -1,0 +1,10 @@
+[Unit]
+Description=Run encrypted Raspberry Pi backup every night
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+Unit=raspberry-backup.service
+
+[Install]
+WantedBy=timers.target

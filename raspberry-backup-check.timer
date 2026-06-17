@@ -1,0 +1,10 @@
+[Unit]
+Description=Run weekly Restic repository check
+
+[Timer]
+OnCalendar=Sun *-*-* 03:30:00
+Persistent=true
+Unit=raspberry-backup-check.service
+
+[Install]
+WantedBy=timers.target
