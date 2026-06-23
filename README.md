@@ -1,6 +1,12 @@
 # voice-assistant-backend-gitops
 GitOps repo for voice assisten - which will create todo list with help of voice and will book a calendar event 
 
+## Architecture
+
+The current runtime, data flows, external integrations, and deployment path are
+documented in [docs/architecture.md](docs/architecture.md). The document uses a
+Mermaid diagram, which GitHub renders directly from the versioned Markdown.
+
 # Installing MicroK8s on Mac
 
 To install MicroK8s on macOS, you'll need to use Multipass since MicroK8s is primarily designed for Linux and requires virtualization on macOS. Here's how to set it up:
