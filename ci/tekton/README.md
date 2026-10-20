@@ -365,7 +365,11 @@ CI stoppar på `HIGH` och `CRITICAL` sårbarheter som inte är markerade som unf
 
 Titta i `step-trivy-image`.
 
-Det betyder att den byggda Docker-imagen innehåller sårbarheter. Vanliga åtgärder:
+Det betyder att den byggda Docker-imagen innehåller sårbarheter. Både källkods- och image-skanningen läser
+`.trivyignore` i applikationsrepot om den finns. Där listas accepterade fynd med motivering och utgångsdatum
+(`CVE-… exp:YYYY-MM-DD`); efter datumet stoppar CI igen så att beslutet omprövas.
+
+Vanliga åtgärder:
 
 - Uppdatera base image i `Dockerfile`.
 - Uppdatera systempaket i imagen.
