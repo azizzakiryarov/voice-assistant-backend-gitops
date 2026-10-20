@@ -194,6 +194,7 @@ spec:
       type: string
       default: HIGH,CRITICAL
   workspaces:
+    - name: source
     - name: cache
   steps:
     - name: trivy-image
@@ -204,8 +205,16 @@ spec:
       script: |
         #!/bin/sh
         set -eu
+        # Accepted findings live in the application repo, next to the code they concern.
+        IGNORE_FILE="$(workspaces.source.path)/repo/.trivyignore"
+        set --
+        if [ -f "$IGNORE_FILE" ]; then
+          echo "Using accepted findings from .trivyignore:"
+          grep -v '^#' "$IGNORE_FILE" | grep -v '^$' || true
+          set -- --ignorefile "$IGNORE_FILE"
+        fi
         trivy image --input "$(workspaces.cache.path)/images/$(params.component)-$(params.image-tag).tar" \
-          --exit-code 1 --ignore-unfixed --severity "$(params.severity)"
+          --exit-code 1 --ignore-unfixed --severity "$(params.severity)" "$@"
 ---
 apiVersion: tekton.dev/v1
 kind: Task
