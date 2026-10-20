@@ -29,6 +29,13 @@ Varje lyckad pipeline pushar två taggar:
 - `<image>:<git-sha>`
 - `<image>:latest`
 
+Därefter skriver pipelinen `<git-sha>` till `images.<component>.tag` i
+`charts/voice-assistant/values.yaml` och pushar en commit (`Deploy backend <sha>`) till det här repot.
+Argo CD ser ändringen i git och rullar ut de nya poddarna. Imagen i drift är därmed alltid
+spårbar till en commit, och en release backas med `git revert` av deploy-commiten.
+
+Pushen till gitops-repot startar ingen ny CI-körning, eftersom webhook-filtret bara matchar frontend- och backend-repona.
+
 ## Vad frontend-CI gör
 
 Frontend-pipelinen heter `voice-assistant-frontend-ci`.
@@ -44,6 +51,7 @@ Steg:
 7. Bygger OCI-image med Buildah till ett lokalt image-arkiv.
 8. Kör Trivy image scan på image-arkivet.
 9. Pushar image till Docker Hub om alla tidigare steg lyckas.
+10. Skriver image-taggen till gitops-repot (task `update-gitops-image-tag`).
 
 Lokalt motsvarar det ungefär:
 
@@ -66,6 +74,7 @@ Steg:
 6. Bygger OCI-image med Buildah till ett lokalt image-arkiv.
 7. Kör Trivy image scan på image-arkivet.
 8. Pushar image till Docker Hub om alla tidigare steg lyckas.
+9. Skriver image-taggen till gitops-repot (task `update-gitops-image-tag`).
 
 Lokalt motsvarar det ungefär:
 
@@ -124,10 +133,21 @@ kubectl --context microk8s -n voice-assistant-ci create secret generic github-we
   --from-literal=secretToken='<random-long-secret>'
 ```
 
+GitHub-token för att skriva image-taggen till gitops-repot. Använd en fine-grained personal access token
+som **bara** har åtkomst till `voice-assistant-backend-gitops`, med behörigheten *Contents: Read and write*.
+Tokenen skickas som en HTTP-header från tasken och hamnar aldrig i git-remoten.
+
+```bash
+read -rs GITOPS_TOKEN
+kubectl --context microk8s -n voice-assistant-ci create secret generic github-gitops-token \
+  --from-literal=token="$GITOPS_TOKEN"
+unset GITOPS_TOKEN
+```
+
 Kontrollera secrets utan att skriva ut värden:
 
 ```bash
-kubectl --context microk8s -n voice-assistant-ci get secret dockerhub-credentials github-webhook-secret
+kubectl --context microk8s -n voice-assistant-ci get secret dockerhub-credentials github-webhook-secret github-gitops-token
 ```
 
 ## Starta CI manuellt
@@ -368,6 +388,19 @@ Vanliga orsaker:
 - Image-namnet är fel.
 - Rate limit eller nätverksproblem mot Docker Hub.
 
+### Uppdatering av gitops-repot misslyckas
+
+Titta i `step-update-tag`.
+
+Vanliga orsaker:
+
+- Secreten `github-gitops-token` saknas, eller tokenen har gått ut eller saknar skrivrätt till gitops-repot.
+- `main` i gitops-repot är skyddad mot direkt push.
+- Strukturen under `images:` i `values.yaml` har ändrats, så att sed inte hittar `tag:`-raden.
+
+Imagen är redan pushad till Docker Hub när det här steget körs. En misslyckad uppdatering betyder bara att
+Argo CD inte rullar ut den. Sätt taggen för hand i `values.yaml` och pusha, eller kör om pipelinen.
+
 ### PVC eller cacheproblem
 
 Kontrollera PVC:
@@ -401,4 +434,11 @@ docker pull docker.io/azizzakiryarov/voice-assistant-frontend:latest
 docker pull docker.io/azizzakiryarov/voice-assistant-backend:latest
 ```
 
-5. Om GitOps/Argo CD ska deploya den nya imagen, kontrollera applikationsstatus i deployment-namespacet efteråt.
+5. Kontrollera att deploy-commiten finns i gitops-repot och att Argo CD har synkat den:
+
+```bash
+git -C /Users/azizzakiryarov/IdeaProjects/voice-assistant-backend-gitops pull
+git -C /Users/azizzakiryarov/IdeaProjects/voice-assistant-backend-gitops log --oneline -3
+kubectl --context microk8s -n argocd get application voice-assistant
+kubectl --context microk8s -n voice-assistant get deploy voice-assistant-deployment-backend -o jsonpath='{.spec.template.spec.containers[0].image}'
+```

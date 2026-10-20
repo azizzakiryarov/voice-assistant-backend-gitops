@@ -100,6 +100,16 @@ spec:
       workspaces:
         - name: cache
           workspace: cache
+    - name: update-gitops
+      runAfter:
+        - push-image
+      taskRef:
+        name: update-gitops-image-tag
+      params:
+        - name: component
+          value: frontend
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
 ---
 apiVersion: tekton.dev/v1
 kind: Pipeline
@@ -213,3 +223,13 @@ spec:
       workspaces:
         - name: cache
           workspace: cache
+    - name: update-gitops
+      runAfter:
+        - push-image
+      taskRef:
+        name: update-gitops-image-tag
+      params:
+        - name: component
+          value: backend
+        - name: image-tag
+          value: $(tasks.clone.results.commit)
