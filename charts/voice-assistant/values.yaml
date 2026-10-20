@@ -1,3 +1,13 @@
+# Image tags are written by the Tekton pipeline (task update-gitops-image-tag)
+# after a successful build. Argo CD rolls out the new pods when a tag changes.
+images:
+  backend:
+    repository: azizzakiryarov/voice-assistant-backend
+    tag: latest
+  frontend:
+    repository: azizzakiryarov/voice-assistant-frontend
+    tag: latest
+
 ingress:
   localHosts:
     - raspberrypi.local

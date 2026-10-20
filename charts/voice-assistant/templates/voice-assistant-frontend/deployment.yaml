@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: voice-assistant
-          image: azizzakiryarov/voice-assistant-frontend:latest
+          image: "{{ .Values.images.frontend.repository }}:{{ .Values.images.frontend.tag }}"
           imagePullPolicy: Always
           ports:
             - containerPort: 80

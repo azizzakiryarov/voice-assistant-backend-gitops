@@ -253,3 +253,70 @@ spec:
         buildah tag "$(params.component):$(params.image-tag)" "$(params.image):latest"
         buildah push --authfile "$REGISTRY_AUTH_FILE" "$(params.image):$(params.image-tag)"
         buildah push --authfile "$REGISTRY_AUTH_FILE" "$(params.image):latest"
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: update-gitops-image-tag
+  namespace: voice-assistant-ci
+spec:
+  description: >-
+    Writes the pushed image tag to the Helm values in the gitops repo, so that
+    Argo CD sees a change in git and rolls out the new image.
+  params:
+    - name: component
+      type: string
+      description: Key under images in values.yaml (backend or frontend).
+    - name: image-tag
+      type: string
+    - name: gitops-repo-url
+      type: string
+      default: https://github.com/azizzakiryarov/voice-assistant-backend-gitops.git
+    - name: gitops-branch
+      type: string
+      default: main
+    - name: values-file
+      type: string
+      default: charts/voice-assistant/values.yaml
+  steps:
+    - name: update-tag
+      image: alpine/git:2.45.2
+      workingDir: /tmp
+      env:
+        - name: GITOPS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-gitops-token
+              key: token
+      script: |
+        #!/bin/sh
+        set -eu
+        # The token goes in a header, never in the remote URL (see CLAUDE.md).
+        AUTH="$(printf 'x-access-token:%s' "$GITOPS_TOKEN" | base64 -w 0)"
+        git_auth() { git -c http.extraHeader="Authorization: Basic $AUTH" "$@"; }
+
+        git_auth clone --depth 1 --branch "$(params.gitops-branch)" "$(params.gitops-repo-url)" gitops
+        cd gitops
+        git config user.name "voice-assistant-ci"
+        git config user.email "voice-assistant-ci@users.noreply.github.com"
+
+        # Retry because the frontend and backend pipelines can push at the same time.
+        for attempt in 1 2 3 4 5; do
+          git_auth fetch --depth 1 origin "$(params.gitops-branch)"
+          git reset --hard FETCH_HEAD
+          # Replace the first "tag:" line after "  <component>:" under images.
+          sed -i "/^  $(params.component):\$/,/^    tag:/ s|^    tag:.*|    tag: \"$(params.image-tag)\"|" "$(params.values-file)"
+          if git diff --quiet; then
+            echo "$(params.component) already uses tag $(params.image-tag)"
+            exit 0
+          fi
+          git diff
+          git commit -am "Deploy $(params.component) $(params.image-tag)"
+          if git_auth push origin "HEAD:$(params.gitops-branch)"; then
+            exit 0
+          fi
+          echo "Push rejected (attempt $attempt), retrying"
+          sleep $((attempt * 3))
+        done
+        echo "Could not push the image tag to the gitops repo" >&2
+        exit 1
