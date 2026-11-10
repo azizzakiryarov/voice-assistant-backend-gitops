@@ -6,7 +6,7 @@ images:
     tag: "f2c63f5b7d8a"
   frontend:
     repository: azizzakiryarov/voice-assistant-frontend
-    tag: "e5cb201acc49"
+    tag: "aa2d1a4d74bb"
 
 ingress:
   localHosts:
