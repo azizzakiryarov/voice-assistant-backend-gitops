@@ -3,7 +3,7 @@
 images:
   backend:
     repository: azizzakiryarov/voice-assistant-backend
-    tag: "57fa01b8181d"
+    tag: "1d8239e038fc"
   frontend:
     repository: azizzakiryarov/voice-assistant-frontend
     tag: "aa2d1a4d74bb"
